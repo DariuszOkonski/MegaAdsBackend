@@ -5,7 +5,7 @@ interface NewAdEntity extends Omit<AdEntity, "id"> {
   id?: string;
 }
 
-export class AdRecord implements AdEntity {
+export class AdRecord implements NewAdEntity {
   public id: string;
   public name: string;
   public description: string;
@@ -21,7 +21,7 @@ export class AdRecord implements AdEntity {
       );
     }
 
-    if (obj.description.length < 1000) {
+    if (!obj.description.length || obj.description.length > 1000) {
       throw new ValidationError(
         "Treść ogłoszenia nie może być pusta, ani przekraczać 1000 znaków."
       );
@@ -43,5 +43,15 @@ export class AdRecord implements AdEntity {
     if (typeof obj.lat !== "number" || typeof obj.lon !== "number") {
       throw new ValidationError("Nie można zlokalizować ogłoszenia.");
     }
+
+    const { id, name, description, lat, lon, price, url } = obj;
+
+    this.id = id;
+    this.name = name;
+    this.description = description;
+    this.price = price;
+    this.url = url;
+    this.lat = lat;
+    this.lon = lon;
   }
 }
