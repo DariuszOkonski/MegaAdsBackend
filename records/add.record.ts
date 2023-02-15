@@ -1,9 +1,9 @@
-import { AdEntity } from "../types";
+import { FieldPacket } from "mysql2";
+import { AdEntity, NewAdEntity } from "../types";
+import { pool } from "../uttils/db";
 import { ValidationError } from "../uttils/errors";
 
-interface NewAdEntity extends Omit<AdEntity, "id"> {
-  id?: string;
-}
+type AdRecordResults = [AdEntity[], FieldPacket];
 
 export class AdRecord implements NewAdEntity {
   public id: string;
@@ -15,6 +15,8 @@ export class AdRecord implements NewAdEntity {
   public lon: number;
 
   constructor(obj: AdEntity) {
+    // console.log(obj);
+
     if (!obj.name || obj.name.length > 100) {
       throw new ValidationError(
         "Nazwa ogłoszenia niemoże być pusta, ani przekraczać 100 znaków."
@@ -53,5 +55,18 @@ export class AdRecord implements NewAdEntity {
     this.url = url;
     this.lat = lat;
     this.lon = lon;
+  }
+
+  static async getOne(id: string): Promise<AdRecord | null> {
+    const [results] = (await pool.execute(
+      "SELECT * FROM `ads` WHERE id = :id",
+      {
+        id,
+      }
+    )) as unknown as AdRecordResults;
+
+    // console.log("!!! results: ", results);
+
+    return results.length === 0 ? null : new AdRecord(results[0]);
   }
 }
